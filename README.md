@@ -53,7 +53,7 @@ clang++ ./test/out.cpp -o ./test/out;
 
 ## Contribution
 Small fixes and improvements are welcome. Open an issue or submit a PR. Current issues:
-1. If python code has docstrings, it breaks
+1. Improve python triple string escape (currently works for simple cases but not tested for edge cases)
 
 ## License
 MIT License

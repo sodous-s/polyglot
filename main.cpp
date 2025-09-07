@@ -23,6 +23,20 @@ std::string system(const std::string& cmd) {
     return result;
 }
 
+std::string replace(const std::string& str, const std::string& from, const std::string& to) {
+    if (from.empty()) return str;
+    
+    std::string result = str;
+    size_t start_pos = 0;
+    
+    while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
+        result.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Move past the replacement
+    }
+    
+    return result;
+}
+
 int main(int argc, char* argv[]) {
     std::vector<std::string_view> a(argv, argv + argc);
 
@@ -109,6 +123,10 @@ checkPySyntax:
     std::vector<std::string> pyFileContent;
     std::string line;
     while (std::getline(cppFileStream, line)) {
+        if (line.find("'''") != std::string::npos
+            && line.find("\\'\\'\\'") == std::string::npos) {
+            line = replace(line, "'''", "\\'\\'\\'");
+        }
         cppFileContent.push_back(line);
     }
     while (std::getline(pyFileStream, line)) {
