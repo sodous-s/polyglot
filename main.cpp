@@ -119,7 +119,7 @@ checkPySyntax:
     std::cout << "Merging files..." << std::endl;
     
     std::ofstream outFileStream(outFileName);
-    outFileStream << "#if 0\n'''\n#endif\n";
+    outFileStream << "#if 0\nr'''\n#endif\n";
 
     // insert c++ code
     for (const std::string& l : cppFileContent) {
