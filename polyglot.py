@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""
-polyglot.py
-
-Usage:
-    python polyglot.py <cppFile>.cpp <pyFile>.py <outFile>.cpp
-
-This script will:
- - verify the C++ file compiles (syntax check),
- - verify the Python file passes pyflakes (syntax/lint check),
- - produce a merged polyglot file containing both C++ and Python code.
-
-It accepts the .cpp and .py arguments in either order.
-"""
 
 import sys
 import subprocess
@@ -22,7 +9,6 @@ USAGE = "Usage: polyglot.py <cppFile>.cpp <pyFile>.py <outFile>.cpp\n"
 
 
 def run_cmd(cmd, capture_output=True, text=True):
-    """Run command list `cmd` and return CompletedProcess."""
     try:
         return subprocess.run(cmd, capture_output=capture_output, text=text, check=False)
     except FileNotFoundError as e:
@@ -35,10 +21,6 @@ def run_cmd(cmd, capture_output=True, text=True):
 
 
 def check_cpp_syntax(cpp_path: Path) -> bool:
-    """
-    Check C++ syntax using g++ with -fsyntax-only.
-    Returns True if no syntax errors, False otherwise.
-    """
     print("Trying to compile C++ program (syntax-only check)...")
     # -fsyntax-only checks syntax without producing an object/binary
     proc = run_cmd(["g++", "-fsyntax-only", str(cpp_path)])
@@ -53,11 +35,6 @@ def check_cpp_syntax(cpp_path: Path) -> bool:
 
 
 def check_py_syntax(py_path: Path) -> bool:
-    """
-    Check Python syntax using pyflakes. If pyflakes isn't installed,
-    prompt user to install it via pip.
-    Returns True if no syntax errors (pyflakes exit code 0), False otherwise.
-    """
     print("Checking Python file syntax with pyflakes...")
     # Try invoking pyflakes as a module first (works if installed for current python)
     proc = run_cmd([sys.executable, "-m", "pyflakes", str(py_path)])
@@ -109,19 +86,6 @@ def check_py_syntax(py_path: Path) -> bool:
 
 
 def merge_files(cpp_path: Path, py_path: Path, out_path: Path) -> None:
-    """
-    Merge the content using the polyglot wrapper:
-    #if 0
-    '''
-    #endif
-    <C++ code>
-    #if 0
-    '''
-    #endif
-    #if 0
-    <python code>
-    #endif
-    """
     print("Merging files...")
     try:
         cpp_text = cpp_path.read_text(encoding="utf-8")
