@@ -52,7 +52,8 @@ clang++ ./test/out.cpp -o ./test/out;
 ```
 
 ## Contribution
-Small fixes and improvements are welcome. Open an issue or submit a PR.
+Small fixes and improvements are welcome. Open an issue or submit a PR. Current issues:
+1. If python code has docstrings, it breaks
 
 ## License
 MIT License
