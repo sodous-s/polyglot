@@ -1,6 +1,6 @@
 # polyglot
 
-(this README is ai generated)
+(most of this README is ai generated)
 
 polyglot is a small tool that merges a C++ source file and a Python source file into a single ".cpp" output file that can be used with C++ toolchains while preserving the Python portion.
 
@@ -33,7 +33,7 @@ After running, check `out.cpp` for the merged result.
   - Alternatively run: python -m pip install pyflakes
 - On some systems the `pyflakes` command might not be on PATH. Try: python -m pyflakes <file>.py
 - The tool uses system commands (popen). Ensure your environment allows executing those commands.
-- The output file is a `.cpp` file that will compile as C++ (Python code is placed in regions ignored by the C++ preprocessor). If you want to run the Python portion directly, extract the Python region into a `.py` file.
+- The output file is a `.cpp` file that will compile as C++ (Python code is placed in regions ignored by the C++ preprocessor (e.g. ```g++ out.cpp -o out; ./out```)) and can be ran by python (e.g. ```python out.cpp```) (python doesn't care about file extensions)
 
 ## Example files
 - test/test.cpp — simple C++ example
