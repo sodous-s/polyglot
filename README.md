@@ -42,12 +42,12 @@ After running, check `out.cpp` for the merged result.
 
 ### Complete command
 ```bash
-clang++ main.cpp -o polyglot;
+g++ main.cpp -o polyglot;
 ./polyglot ./test/test.cpp ./test/test.py ./test/out.cpp;
 
 python ./test/out.cpp;
 
-clang++ ./test/out.cpp -o ./test/out;
+g++ ./test/out.cpp -o ./test/out;
 ./out; 
 ```
 
