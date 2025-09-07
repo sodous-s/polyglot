@@ -78,19 +78,12 @@ int main(int argc, char* argv[]) {
     }
     
     std::cout << "Trying to compile c++ program" << std::endl;
-    std::string compileOutput = system("g++ " + cppFileName);
+    std::string compileOutput = system("g++ " + cppFileName + " -fsyntax-only");
     if (compileOutput.find("Error") != std::string::npos) {
         std::cout << "Syntax Errors present!" << std::endl;
         return 1;
     }
-    std::cout << "Removing temp file from compilation" << std::endl;
-
-    #if defined(_WIN32) || defined(_WIN64) || defined(__linux__) || defined(__APPLE__)
-        int result = remove("a.exe");
-        if (result != 0) {
-            std::cout << "Temp file a.exe cannot be removed" << std::endl;
-        }
-    #endif
+    
     std::cout << "No syntax errors, code compiled successfully" << std::endl;
 
 
