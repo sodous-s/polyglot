@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include <memory>
+#include <cstdio>
 
 std::string usageStr = "Usage: polyglot <cppFile>.cpp <pyFile>.py <outFile>.cpp\n";
 
@@ -78,6 +79,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Syntax Errors present!" << std::endl;
         return 1;
     }
+    std::cout << "Removing temp file from compilation" << std::endl;
+
+    #if defined(_WIN32) || defined(_WIN64) || defined(__linux__) || defined(__APPLE__)
+        int result = remove("a.exe");
+        if (result != 0) {
+            std::cout << "Temp file a.exe cannot be removed" << std::endl;
+        }
+    #endif
     std::cout << "No syntax errors, code compiled successfully" << std::endl;
 
 

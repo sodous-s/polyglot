@@ -40,8 +40,19 @@ After running, check `out.cpp` for the merged result.
 - test/test.py — simple Python example
 - test/out.cpp — example of a previously merged output
 
+### Complete command
+```bash
+clang++ main.cpp -o polyglot;
+./polyglot ./test/test.cpp ./test/test.py ./test/out.cpp;
+
+python ./test/out.cpp;
+
+clang++ ./test/out.cpp -o ./test/out;
+./out; 
+```
+
 ## Contribution
 Small fixes and improvements are welcome. Open an issue or submit a PR.
 
 ## License
-Add a license as appropriate for your project.
+MIT License
