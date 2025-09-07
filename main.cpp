@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include <memory>
+#include <filesystem>
 #include <cstdio>
 
 std::string usageStr = "Usage: polyglot <cppFile>.cpp <pyFile>.py <outFile>.cpp\n";
@@ -35,29 +36,18 @@ int main(int argc, char* argv[]) {
     std::string pyFileName;
     std::string outFileName;
 
-    if (a[1][a[1].size() - 4] == '.' 
-        && a[1][a[1].size() - 3] == 'c' 
-        && a[1][a[1].size() - 2] == 'p'
-        && a[1][a[1].size() - 1] == 'p'
+    namespace fs = std::filesystem;
 
-        && a[2][a[2].size() - 3] == '.' 
-        && a[2][a[2].size() - 2] == 'p' 
-        && a[2][a[2].size() - 1] == 'y'
-    ) {
-        cppFileName = a[1];
-        pyFileName = a[2];
+    fs::path arg1(a[1]);
+    fs::path arg2(a[2]);
+
+    if (arg1.extension() == ".cpp" && arg2.extension() == ".py") {
+        cppFileName = arg1.string();
+        pyFileName  = arg2.string();
         outFileName = a[3];
-    } else if (a[1][a[1].size() - 3] == '.'
-            && a[1][a[1].size() - 2] == 'p'
-            && a[1][a[1].size() - 1] == 'y' 
-
-            && a[2][a[2].size() - 4] == '.' 
-            && a[2][a[2].size() - 3] == 'c' 
-            && a[2][a[2].size() - 2] == 'p' 
-            && a[2][a[2].size() - 1] == 'p'
-    ) {
-        pyFileName = a[1];
-        cppFileName = a[2];
+    } else if (arg1.extension() == ".py" && arg2.extension() == ".cpp") {
+        pyFileName  = arg1.string();
+        cppFileName = arg2.string();
         outFileName = a[3];
     } else {
         std::cout << "Usage not recognized." << std::endl;
