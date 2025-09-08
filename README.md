@@ -9,7 +9,6 @@ The generated output wraps sections so the C++ compiler ignores the Python code 
 
 ## Requirements
 - g++ (for C++ syntax check and compiling the tool)
-- Python (for running pyflakes and for running Python code if you extract it)
 - pip (to install pyflakes if absent)
 - (optional) pyflakes for Python syntax checking
 
