@@ -24,7 +24,9 @@ polyglot expects three arguments:
 
 Example:
 - Using the sample files in this repo:
-  - ./polyglot ./test/test.cpp ./test/test.py ./test/out.cpp
+  - ```bash
+    ./polyglot ./test/test.cpp ./test/test.py ./test/out.cpp
+    ```
 
 After running, check `out.cpp` for the merged result.
 
