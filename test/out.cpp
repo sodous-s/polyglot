@@ -1,6 +1,7 @@
 #if 0
-r'''
+: '
 #endif
+
 #include <iostream>
 
 int main() {
@@ -8,8 +9,9 @@ int main() {
     return 0;
 }
 #if 0
-'''
+'
 #endif
+
 #if 0
-print("Hello from python!")
+echo "Hello from Bash!"
 #endif
