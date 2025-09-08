@@ -2,11 +2,9 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <string_view>
 #include <array>
 #include <memory>
 #include <filesystem>
-#include <unordered_map>
 #include <stdexcept>
 
 namespace fs = std::filesystem;
@@ -129,7 +127,7 @@ void writeMerged(
 
 
 int main(int argc, char* argv[]) {
-    std::vector<std::string_view> args(argv, argv + argc);
+    std::vector<std::string> args(argv, argv + argc);
     if (argc < 5) {
         std::cerr << usageStr;
         return 1;
