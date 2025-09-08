@@ -79,23 +79,54 @@ std::vector<std::string> readFile(const std::string& filename) {
 
 void writeMerged(
     const std::string& outFile,
-    const std::string& lang1, const std::vector<std::string>& content1,
-    const std::string& lang2, const std::vector<std::string>& content2
+    const std::string& ext1, const std::vector<std::string>& content1,
+    const std::string& ext2, const std::vector<std::string>& content2
 ) {
-    std::ofstream out(outFile);
+    std::ofstream out(outFile, std::ios::binary);
     if (!out.is_open()) throw std::runtime_error("Failed to open output: " + outFile);
 
-    out << "#if 0\nr'''\n#endif\n";
+    auto openFence = [](const std::string& ext) -> std::string {
+        if (ext == ".py") return "r'''";
+        if (ext == ".rb") return "=begin";
+        if (ext == ".sh") return ": '";
+        return "";
+    };
 
+    auto closeFence = [](const std::string& ext) -> std::string {
+        if (ext == ".py") return "'''";
+        if (ext == ".rb") return "=end";
+        if (ext == ".sh") return "'";
+        return "";
+    };
+
+    auto escapeCpp = [](const std::string& content) -> std::string {
+        return "#if 0\n" + content + "\n#endif\n";
+    };
+
+    auto writeLine = [&](const std::string& line) {
+        out.write(line.c_str(), line.size());
+        out.put('\n'); // always LF
+    };
+
+    // --- Block 1: ext1 visible, ext2 hidden ---
+    if (ext2 != ".cpp" && ext2 != ".cc" && ext2 != ".cxx") {
+        writeLine(escapeCpp(openFence(ext2)));
+    }
     for (auto& l : content1) out << l << "\n";
+    if (ext2 != ".cpp" && ext2 != ".cc" && ext2 != ".cxx") {
+        writeLine(escapeCpp(closeFence(ext2)));
+    }
 
-    out << "#if 0\n'''\n#endif\n";
-    out << "#if 0\n";
-
+    // --- Block 2: ext2 visible, ext1 hidden with #if 0 for C++ ---
+    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
+        writeLine("#if 0");
+    }
     for (auto& l : content2) out << l << "\n";
-
-    out << "#endif\n";
+    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
+        writeLine("#endif");
+    }
 }
+
 
 int main(int argc, char* argv[]) {
     std::vector<std::string_view> args(argv, argv + argc);
