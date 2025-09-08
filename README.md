@@ -5,7 +5,7 @@
 polyglot is a small tool that merges a C++ source file and a Python source file into a single ".cpp" output file that can be used with C++ toolchains while preserving the Python portion.
 
 ## Purpose
-The generated output wraps sections so the C++ compiler ignores the Python code and the Python interpreter sees the Python section as a normal script region. The main program (main.cpp) validates syntax using g++ and pyflakes before merging.
+The generated output wraps sections so the C++ compiler ignores the Python code and the Python interpreter sees the Python section as a normal script region. The main program (main.cpp) validates syntax using g++ and pyflakes before merging. This tool could be used to **produce a single file that produces different output when ran by python or compiled as C++.**
 
 ## Requirements
 - g++ (for C++ syntax check and compiling the tool)
@@ -15,11 +15,13 @@ The generated output wraps sections so the C++ compiler ignores the Python code 
 ## Build
 From the repository root:
 - Compile the tool:
-  - g++ main.cpp -o polyglot
+  - ```bash
+    g++ main.cpp -o polyglot
+    ```
 
 ## Usage
 polyglot expects three arguments:
-- polyglot <cppFile>.cpp <pyFile>.py <outFile>.cpp
+- ```polyglot <cppFile>.cpp <pyFile>.py <outFile>.cpp```
 
 Example:
 - Using the sample files in this repo:
@@ -34,7 +36,7 @@ After running, check `out.cpp` for the merged result.
   - Alternatively run: python -m pip install pyflakes
 - On some systems the `pyflakes` command might not be on PATH. Try: python -m pyflakes <file>.py
 - The tool uses system commands (popen). Ensure your environment allows executing those commands.
-- The output file is a `.cpp` file that will compile as C++ (Python code is placed in regions ignored by the C++ preprocessor (e.g. ```g++ out.cpp -o out; ./out```)) and can be ran by python (e.g. ```python out.cpp```) (python doesn't care about file extensions)
+- The output file is a `.cpp` file that will compile as C++ (e.g. ```g++ out.cpp -o out; ./out```) (Python code is placed in regions ignored by the C++ preprocessor) and can be ran by python (e.g. ```python out.cpp```) (python doesn't care about file extensions)
 
 ## Example files
 - test/test.cpp — simple C++ example
