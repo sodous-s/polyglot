@@ -2,15 +2,19 @@
 
 (most of this README is ai generated)
 
-polyglot is a small tool that merges a C++ source file and a Python source file into a single ".cpp" output file that can be used with C++ toolchains while preserving the Python portion.
+polyglot is a small tool that merges two source files (for example C++ + Python) into a single ".cpp" output file that can be used with C++ toolchains while preserving the other-language portion.
 
 ## Purpose
-The generated output wraps sections so the C++ compiler ignores the Python code and the Python interpreter sees the Python section as a normal script region. The main program (main.cpp) validates syntax using g++ and pyflakes before merging. This tool could be used to **produce a single file that produces different output when ran by python or compiled as C++.**
+The generated output wraps sections so the C++ compiler ignores the other-language code and the interpreter for that language sees the section as a normal script region. The main program (`main.cpp`) validates syntax using external checkers (for example `g++` for C++ and `pyflakes` for Python) before merging. This tool can be used to **produce a single file that behaves differently when run by Python (or another interpreter) or compiled as C++.**
 
 ## Requirements
-- g++ (for C++ syntax check and compiling the tool)
-- pip (to install pyflakes if absent)
-- (optional) pyflakes for Python syntax checking
+- g++ (for C++ syntax checking and compiling the tool)
+- pip (to install `pyflakes` if absent)
+- `pyflakes` for Python syntax checking (optional)
+
+The tool also supports syntax checking for other languages via system tools:
+- Ruby (`ruby -c`) — files with `.rb`
+- Bash (`bash -n`) — files with `.sh`
 
 ## Build
 From the repository root:
@@ -20,23 +24,29 @@ From the repository root:
     ```
 
 ## Usage
-polyglot expects three arguments:
-- ```polyglot <cppFile>.cpp <pyFile>.py <outFile>.cpp```
+polyglot expects two source files and an output file specified with the `-o` option:
 
-Example:
-- Using the sample files in this repo:
-  - ```bash
-    ./polyglot ./test/test.cpp ./test/test.py ./test/out.cpp
-    ```
+```bash
+polyglot <source1> <source2> -o <outputFile>
+```
 
-After running, check `out.cpp` for the merged result.
+The order of the two source files doesn't matter. The program determines which checks to run based on file extensions.
+
+Example (using the sample files in this repo):
+
+```bash
+./polyglot ./test/test.cpp ./test/test.py -o ./test/out.cpp
+```
+
+After running, check your chosen output file (for example `./test/out.cpp`) for the merged result.
 
 ## Notes & Troubleshooting
-- If `pyflakes` is not installed, the tool will prompt to install it via pip.
-  - Alternatively run: python -m pip install pyflakes
-- On some systems the `pyflakes` command might not be on PATH. Try: python -m pyflakes <file>.py
-- The tool uses system commands (popen). Ensure your environment allows executing those commands.
-- The output file is a `.cpp` file that will compile as C++ (e.g. ```g++ out.cpp -o out; ./out```) (Python code is placed in regions ignored by the C++ preprocessor) and can be ran by python (e.g. ```python out.cpp```) (python doesn't care about file extensions)
+Notes & Troubleshooting
+- If `pyflakes` is not installed the tool will print the error from the attempted check; install it or skip using Python source files.
+  - Install manually: `python -m pip install pyflakes`
+- On some systems the `pyflakes` executable might not be on PATH; use `python -m pyflakes <file>.py` instead.
+- The tool runs external commands (via popen). Ensure `g++`, `bash`, and `ruby` are available if you use those source file types.
+- The output file is a `.cpp` file that will compile as C++ and can also be run by an interpreter (for example `python out.cpp`).
 
 ## Example files
 - test/test.cpp — simple C++ example
@@ -45,13 +55,13 @@ After running, check `out.cpp` for the merged result.
 
 ### Complete command
 ```bash
-g++ main.cpp -o polyglot;
-./polyglot ./test/test.cpp ./test/test.py ./test/out.cpp;
+g++ main.cpp -o polyglot
+./polyglot ./test/test.cpp ./test/test.py -o ./test/out.cpp
 
-python ./test/out.cpp;
+python ./test/out.cpp
 
-g++ ./test/out.cpp -o ./test/out;
-./out; 
+g++ ./test/out.cpp -o ./test/out
+./test/out
 ```
 
 ## Contribution
