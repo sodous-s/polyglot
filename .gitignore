@@ -1,4 +1,6 @@
 polyglot
+out
+__pycache__/
 
 # Compiled object files
 *.o
