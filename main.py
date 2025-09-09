@@ -3,164 +3,105 @@
 import sys
 import subprocess
 from pathlib import Path
-import shutil
+import argparse
 
-USAGE = "Usage: polyglot.py <cppFile>.cpp <pyFile>.py <outFile>.cpp\n"
-
-
-def run_cmd(cmd, capture_output=True, text=True):
+def run_cmd(cmd):
     try:
-        return subprocess.run(cmd, capture_output=capture_output, text=text, check=False)
-    except FileNotFoundError as e:
-        # command not found
-        class Dummy:
-            returncode = 127
-            stdout = ""
-            stderr = str(e)
-        return Dummy()
-
-
-def check_cpp_syntax(cpp_path: Path) -> bool:
-    print("Trying to compile C++ program (syntax-only check)...")
-    # -fsyntax-only checks syntax without producing an object/binary
-    proc = run_cmd(["g++", "-fsyntax-only", str(cpp_path)])
-    # Many compilers print errors to stderr
-    output = (proc.stdout or "") + (proc.stderr or "")
-    if proc.returncode != 0:
-        print("Syntax Errors present in C++ file. Compiler output:")
-        print(output)
-        return False
-    print("No syntax errors, C++ syntax check passed.")
-    return True
-
-
-def check_py_syntax(py_path: Path) -> bool:
-    print("Checking Python file syntax with pyflakes...")
-    # Try invoking pyflakes as a module first (works if installed for current python)
-    proc = run_cmd([sys.executable, "-m", "pyflakes", str(py_path)])
-    stdout = proc.stdout or ""
-    stderr = proc.stderr or ""
-
-    # Detect module-not-found style message
-    module_missing = "No module named pyflakes" in stderr or ("pyflakes" in stderr and "not found" in stderr.lower()) or proc.returncode == 127
-
-    if module_missing:
-        print("pyflakes is not installed for this Python interpreter.")
-        # Ask user if they want to install
-        proceed = input("PyFlakes not installed. Proceed to install? [Y/n] ").strip()
-        if proceed == "" or proceed.lower() == "y":
-            print("Installing pyflakes using pip...")
-            pip_proc = run_cmd([sys.executable, "-m", "pip", "install", "pyflakes"])
-            pip_out = (pip_proc.stdout or "") + (pip_proc.stderr or "")
-            if pip_proc.returncode != 0:
-                print("Fatal: pip install failed. Install pip and/or pyflakes manually and re-run the script.")
-                print("pip output:")
-                print(pip_out)
-                return False
-            # re-run pyflakes
-            proc = run_cmd([sys.executable, "-m", "pyflakes", str(py_path)])
-            stdout = proc.stdout or ""
-            stderr = proc.stderr or ""
-        else:
-            print("Aborting: pyflakes required to continue.")
-            return False
-
-    # If pyflakes returns non-zero, it might have found issues and printed them to stdout/stderr.
-    if proc.returncode != 0:
-        combined = (stdout or "") + (stderr or "")
-        # pyflakes prints messages about issues; treat any output as "errors/warnings"
-        if combined.strip():
-            print("pyflakes reported issues:")
-            print(combined)
-            # treat as fatal as original code treats 'invalid syntax' as fatal
-            return False
-        else:
-            # No output but nonzero? treat as failure.
-            print("pyflakes returned non-zero exit code; output:")
-            print(combined)
-            return False
-
-    # pyflakes exitcode == 0 => no issues
-    print("No syntax errors, python syntax check passed.")
-    return True
-
-
-def merge_files(cpp_path: Path, py_path: Path, out_path: Path) -> None:
-    print("Merging files...")
-    try:
-        cpp_text = cpp_path.read_text(encoding="utf-8")
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        return result.stdout
     except Exception as e:
-        print(f"Failed to read C++ file: {e}")
-        raise
+        return str(e)
 
-    try:
-        py_text = py_path.read_text(encoding="utf-8")
-    except Exception as e:
-        print(f"Failed to read Python file: {e}")
-        raise
-
-    merged = []
-    merged.append("#if 0")
-    merged.append("'''")
-    merged.append("#endif")
-    merged.append("")  # blank line
-    merged.append(cpp_text.rstrip("\n"))  # preserve original except trailing newline
-    merged.append("")  # ensure separation
-    merged.append("#if 0")
-    merged.append("'''")
-    merged.append("#endif")
-    merged.append("")  # blank line
-    merged.append("#if 0")
-    merged.append(py_text.rstrip("\n"))
-    merged.append("#endif")
-
-    out_path.write_text("\n".join(merged) + "\n", encoding="utf-8")
-    print(f"Finished. Check {out_path}")
-
-
-def main(argv):
-    if len(argv) != 4:
-        print("Error: expected 3 arguments, got", len(argv) - 1)
-        print(USAGE, end="")
-        return 1
-
-    # argv[1], argv[2] may be in either order
-    p1 = Path(argv[1])
-    p2 = Path(argv[2])
-    outp = Path(argv[3])
-
-    if not p1.exists() or not p2.exists():
-        print("Error: one or more input files do not exist.")
-        print(f"Got: {p1} (exists={p1.exists()}), {p2} (exists={p2.exists()})")
-        return 1
-
-    # determine which is which
-    if p1.suffix == ".cpp" and p2.suffix == ".py":
-        cpp_path, py_path = p1, p2
-    elif p1.suffix == ".py" and p2.suffix == ".cpp":
-        py_path, cpp_path = p1, p2
+def check_syntax(file_path, ext):
+    if ext in ['.cpp', '.cc', '.cxx']:
+        res = run_cmd(f"g++ -fsyntax-only {file_path} 2>&1")
+        if res.strip():
+            print(f"C++ syntax errors in {file_path}:\n{res}")
+            return False
+        return True
+    elif ext == '.py':
+        res = run_cmd(f"python -m py_compile {file_path} 2>&1")
+        if res.strip():
+            print(f"Python syntax errors in {file_path}:\n{res}")
+            return False
+        return True
+    elif ext == '.rb':
+        res = run_cmd(f"ruby -c {file_path} 2>&1")
+        if "Syntax OK" not in res:
+            print(f"Ruby syntax errors in {file_path}:\n{res}")
+            return False
+        return True
+    elif ext == '.sh':
+        res = run_cmd(f"bash -n {file_path} 2>&1")
+        if res.strip():
+            print(f"Bash syntax errors in {file_path}:\n{res}")
+            return False
+        return True
     else:
-        print("Usage not recognized.")
-        print(USAGE, end="")
+        print(f"Unsupported file extension: {ext}")
+        return False
+
+def main():
+    parser = argparse.ArgumentParser(description='Merge two source files into a polyglot')
+    parser.add_argument('source1', help='First source file')
+    parser.add_argument('source2', help='Second source file')
+    parser.add_argument('-o', '--output', required=True, help='Output file')
+    args = parser.parse_args()
+
+    file1 = Path(args.source1)
+    file2 = Path(args.source2)
+    out_file = Path(args.output)
+
+    ext1 = file1.suffix
+    ext2 = file2.suffix
+
+    # Check syntax
+    print(f"Checking syntax for {file1}...")
+    if not check_syntax(file1, ext1):
         return 1
 
-    # C++ syntax check
-    if not check_cpp_syntax(cpp_path):
+    print(f"Checking syntax for {file2}...")
+    if not check_syntax(file2, ext2):
         return 1
 
-    # Python syntax check via pyflakes
-    if not check_py_syntax(py_path):
-        return 1
+    # Read files
+    with open(file1, 'r') as f:
+        content1 = f.read().splitlines()
+    with open(file2, 'r') as f:
+        content2 = f.read().splitlines()
 
-    # Merge
-    try:
-        merge_files(cpp_path, py_path, outp)
-    except Exception as e:
-        print("Failed to merge files:", e)
-        return 1
+    # Merge files
+    def open_fence(ext):
+        if ext == '.py': return "r'''"
+        if ext == '.rb': return "=begin"
+        if ext == '.sh': return ": '"
+        return ""
 
+    def close_fence(ext):
+        if ext == '.py': return "'''"
+        if ext == '.rb': return "=end"
+        if ext == '.sh': return "'"
+        return ""
+
+    with open(out_file, 'w') as f:
+        # First file
+        if ext2 not in ['.cpp', '.cc', '.cxx']:
+            f.write(f"#if 0\n{open_fence(ext2)}\n#endif\n")
+        for line in content1:
+            f.write(line + '\n')
+        if ext2 not in ['.cpp', '.cc', '.cxx']:
+            f.write(f"#if 0\n{close_fence(ext2)}\n#endif\n")
+
+        # Second file
+        if ext1 in ['.cpp', '.cc', '.cxx']:
+            f.write("#if 0\n")
+        for line in content2:
+            f.write(line + '\n')
+        if ext1 in ['.cpp', '.cc', '.cxx']:
+            f.write("#endif\n")
+
+    print(f"Merged into {out_file}")
     return 0
 
-
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())

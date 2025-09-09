@@ -108,21 +108,19 @@ void writeMerged(
 
     // --- Block 1: ext1 visible, ext2 hidden ---
     if (ext2 != ".cpp" && ext2 != ".cc" && ext2 != ".cxx") {
-        writeLine(escapeCpp(openFence(ext2)));
-    }
-    for (auto& l : content1) out << l << "\n";
-    if (ext2 != ".cpp" && ext2 != ".cc" && ext2 != ".cxx") {
+        writeLine(escapeCpp(openFence(ext2))); // hide second file
+        for (auto& l : content1) writeLine(l);
         writeLine(escapeCpp(closeFence(ext2)));
     }
 
-    // --- Block 2: ext2 visible, ext1 hidden with #if 0 for C++ ---
+
+    // --- Block 2: ext2 visible, ext1 hidden ---
     if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
-        writeLine("#if 0");
-    }
-    for (auto& l : content2) out << l << "\n";
-    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
+        writeLine("#if 0"); // hide first file
+        for (auto& l : content2) writeLine(l);
         writeLine("#endif");
     }
+
 }
 
 
