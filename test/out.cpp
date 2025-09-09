@@ -1,7 +1,6 @@
 #if 0
 : '
 #endif
-
 #include <iostream>
 
 int main() {
@@ -11,7 +10,6 @@ int main() {
 #if 0
 '
 #endif
-
 #if 0
 echo "Hello from Bash!"
 #endif
