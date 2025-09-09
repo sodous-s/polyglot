@@ -106,20 +106,33 @@ void writeMerged(
         out.put('\n'); // always LF
     };
 
-    // --- Block 1: ext1 visible, ext2 hidden ---
-    if (ext2 != ".cpp" && ext2 != ".cc" && ext2 != ".cxx") {
-        writeLine(escapeCpp(openFence(ext2))); // hide second file
+    // --- Block A: output C++ file, hide non-C++ fence ---
+    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
+        // ext1 is C++, show it
+        writeLine(escapeCpp(openFence(ext2)));
         for (auto& l : content1) writeLine(l);
         writeLine(escapeCpp(closeFence(ext2)));
-    }
 
-
-    // --- Block 2: ext2 visible, ext1 hidden ---
-    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
-        writeLine("#if 0"); // hide first file
+        // hide ext2
+        writeLine("#if 0");
         for (auto& l : content2) writeLine(l);
         writeLine("#endif");
     }
+    else if (ext2 == ".cpp" || ext2 == ".cc" || ext2 == ".cxx") {
+        // ext2 is C++, show it
+        writeLine(escapeCpp(openFence(ext1)));
+        for (auto& l : content2) writeLine(l);
+        writeLine(escapeCpp(closeFence(ext1)));
+
+        // hide ext1
+        writeLine("#if 0");
+        for (auto& l : content1) writeLine(l);
+        writeLine("#endif");
+    }
+    else {
+        throw std::runtime_error("No C++ file in pair");
+    }
+
 
 }
 
