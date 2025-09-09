@@ -288,21 +288,35 @@ def main():
         return ""
 
     with open(out_file, 'w') as f:
-        # First file
-        if ext2 not in ['.cpp', '.cc', '.cxx']:
+        if ext1 in ['.cpp', '.cc', '.cxx']:
+            # ext1 is C++, show it
             f.write(f"#if 0\n{open_fence(ext2)}\n#endif\n")
-        for line in content1:
-            f.write(line + '\n')
-        if ext2 not in ['.cpp', '.cc', '.cxx']:
+            for line in content1:
+                f.write(line + '\n')
             f.write(f"#if 0\n{close_fence(ext2)}\n#endif\n")
 
-        # Second file
-        if ext1 in ['.cpp', '.cc', '.cxx']:
+            # hide ext2
             f.write("#if 0\n")
-        for line in content2:
-            f.write(line + '\n')
-        if ext1 in ['.cpp', '.cc', '.cxx']:
+            for line in content2:
+                f.write(line + '\n')
             f.write("#endif\n")
+
+        elif ext2 in ['.cpp', '.cc', '.cxx']:
+            # ext2 is C++, show it
+            f.write(f"#if 0\n{open_fence(ext1)}\n#endif\n")
+            for line in content2:
+                f.write(line + '\n')
+            f.write(f"#if 0\n{close_fence(ext1)}\n#endif\n")
+
+            # hide ext1
+            f.write("#if 0\n")
+            for line in content1:
+                f.write(line + '\n')
+            f.write("#endif\n")
+
+        else:
+            print("Error: No C++ file in pair")
+            return 1
 
     print(f"Merged into {out_file}")
     return 0
