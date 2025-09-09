@@ -72,7 +72,7 @@ def main():
 
     # Merge files
     def open_fence(ext):
-        if ext == '.py': return "r'''"
+        if ext == '.py': return r"r'''"
         if ext == '.rb': return "=begin"
         if ext == '.sh': return ": '"
         return ""

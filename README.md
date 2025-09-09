@@ -67,6 +67,7 @@ g++ ./test/out.cpp -o ./test/out
 ## Contribution
 Small fixes and improvements are welcome. Open an issue or submit a PR. Current issues:
 1. Improve python triple string escape (currently works for simple cases but not tested for edge cases)
+2. Fix python string escape in polyglot.cpp (the merged file from main.cpp and main.py). Running it with python causes a syntax error in 97, suggesting insufficient string escape
 
 ## License
 MIT License
