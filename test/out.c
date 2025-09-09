@@ -1,15 +1,17 @@
 #if 0
 : '
 #endif
-#include <iostream>
+
+#include <stdio.h>
 
 int main() {
-    std::cout << "Hello from C++!" << std::endl;
+    printf("Hello from C!\n");
     return 0;
 }
 #if 0
 '
 #endif
+
 #if 0
 echo "Hello from Bash!"
 #endif
