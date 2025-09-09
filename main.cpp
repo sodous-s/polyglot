@@ -30,8 +30,8 @@ std::string runCmd(const std::string& cmd) {
 bool checkSyntax(const std::string& file, const std::string& ext) {
     std::string res;
 
-    if (ext == ".cpp" || ext == ".cc" || ext == ".cxx") {
-        res = runCmd("g++ -fsyntax-only " + file + " 2>&1");
+    if (ext == ".cpp" || ext == ".cc" || ext == ".cxx" || ext == ".c") {
+        res = runCmd("g++ -fsyntax-only " + file + " 2>&1"); // g++ works for C i think
         if (!res.empty()) {
             std::cerr << "C++ syntax errors in " << file << ":\n" << res;
             return false;
@@ -61,7 +61,7 @@ bool checkSyntax(const std::string& file, const std::string& ext) {
         return true;
     }
 
-    std::cerr << "Unsupported file extension: " << ext << "\n";
+    std::cerr << "\nUnsupported file extension: " << ext << "\n";
     return false;
 }
 
@@ -107,7 +107,7 @@ void writeMerged(
     };
 
     // --- Block A: output C++ file, hide non-C++ fence ---
-    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx") {
+    if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx" || ext1 == ".c") {
         // ext1 is C++, show it
         writeLine(escapeCpp(openFence(ext2)));
         for (auto& l : content1) writeLine(l);
@@ -118,7 +118,7 @@ void writeMerged(
         for (auto& l : content2) writeLine(l);
         writeLine("#endif");
     }
-    else if (ext2 == ".cpp" || ext2 == ".cc" || ext2 == ".cxx") {
+    else if (ext2 == ".cpp" || ext2 == ".cc" || ext2 == ".cxx" || ext2 == ".c") {
         // ext2 is C++, show it
         writeLine(escapeCpp(openFence(ext1)));
         for (auto& l : content2) writeLine(l);
@@ -130,7 +130,7 @@ void writeMerged(
         writeLine("#endif");
     }
     else {
-        throw std::runtime_error("No C++ file in pair");
+        throw std::runtime_error("No C/C++ file in pair");
     }
 
 

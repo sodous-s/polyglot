@@ -2,10 +2,10 @@
 r'''
 #endif
 
-#include <iostream>
+#include <stdio.h>
 
 int main() {
-    std::cout << "Hello from C++!" << std::endl;
+    printf("Hello from C!");
     return 0;
 }
 #if 0
