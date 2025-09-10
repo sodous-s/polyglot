@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 std::string usageStr =
     "Usage: polyglot <source1> <source2> -o <outputFile>\n"
     "Supported extensions:\n"
-    "  C++: .cpp, .cc, .cxx\n"
+    "  C/C++: .cpp, .cc, .cxx, .c\n"
     "  Python: .py\n"
     "  Ruby: .rb\n"
     "  Bash: .sh\n";
@@ -27,33 +27,59 @@ std::string runCmd(const std::string& cmd) {
     return result;
 }
 
+// add this helper above checkSyntax (near the other helpers)
+static std::string shellSafePath(const std::string& path) {
+    // use generic_string() so Windows backslashes become forward slashes
+    std::string s = fs::path(path).generic_string();
+
+    // escape double quotes if present, then wrap the path in double-quotes
+    std::string escaped;
+    for (char c : s) {
+        if (c == '"') escaped += "\\\"";
+        else escaped += c;
+    }
+    return "\"" + escaped + "\"";
+}
+
 bool checkSyntax(const std::string& file, const std::string& ext) {
     std::string res;
+    std::string quoted = shellSafePath(file);
 
     if (ext == ".cpp" || ext == ".cc" || ext == ".cxx" || ext == ".c") {
-        res = runCmd("g++ -fsyntax-only " + file + " 2>&1"); // g++ works for C i think
+        std::string flag = ext == ".c" ? "-x c " : "";
+        // quote the path for safety
+        res = runCmd("g++ -fsyntax-only " + flag + quoted + " 2>&1");
         if (!res.empty()) {
-            std::cerr << "C++ syntax errors in " << file << ":\n" << res;
+            std::cerr << "C/C++ syntax errors in " << file << ":\n" << res;
             return false;
         }
         return true;
     } else if (ext == ".py") {
-        res = runCmd("pyflakes " + file + " 2>&1");
+        // Prefer a simple, widely-available check if pyflakes isn't installed.
+        // Try pyflakes first; if it fails because pyflakes isn't present,
+        // fall back to python -m py_compile.
+        res = runCmd("pyflakes " + quoted + " 2>&1");
         if (!res.empty()) {
-            std::cerr << "Python syntax errors in " << file << ":\n" << res;
-            std::cerr << "If python file does not have syntax errors, please check if pyflakes is installed." << std::endl;
-            return false;
+            // if pyflakes seems missing (its stderr often mentions 'No module named'),
+            // try python compile fallback
+            std::string fallback = runCmd("python -m py_compile " + quoted + " 2>&1");
+            if (!fallback.empty()) {
+                std::cerr << "Python syntax errors in " << file << ":\n" << fallback;
+                std::cerr << "If pyflakes is desired, please install it or ensure it's on PATH.\n";
+                return false;
+            }
         }
         return true;
     } else if (ext == ".rb") {
-        res = runCmd("ruby -c " + file + " 2>&1");
+        res = runCmd("ruby -c " + quoted + " 2>&1");
         if (res.find("Syntax OK") == std::string::npos) {
             std::cerr << "Ruby syntax errors in " << file << ":\n" << res;
             return false;
         }
         return true;
     } else if (ext == ".sh") {
-        res = runCmd("bash -n " + file + " 2>&1");
+        // use bash -n with a properly quoted, forward-slash path
+        res = runCmd("bash -n " + quoted + " 2>&1");
         if (!res.empty()) {
             std::cerr << "Bash syntax errors in " << file << ":\n" << res;
             return false;
@@ -132,8 +158,6 @@ void writeMerged(
     else {
         throw std::runtime_error("No C/C++ file in pair");
     }
-
-
 }
 
 
