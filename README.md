@@ -5,7 +5,9 @@
 polyglot is a small tool that merges two source files (for example C++ + Python) into a single ".cpp" output file that can be used with C++ toolchains while preserving the other-language portion.
 
 ## Purpose
-The generated output wraps sections so the C++ compiler ignores the other-language code and the interpreter for that language sees the section as a normal script region. The main program (`main.cpp`) validates syntax using external checkers (for example `g++` for C++ and `pyflakes` for Python) before merging. This tool can be used to **produce a single file that behaves differently when run by Python (or another interpreter) or compiled as C++.**
+The generated output wraps sections so the C/C++ compiler ignores the other-language code and the interpreter for that language sees the section as a normal script region. The main program (`main.cpp`) validates syntax using external checkers (for example `g++` for C++ and `pyflakes` for Python) before merging. This tool can be used to **produce a single file that behaves differently when run by Python (or another interpreter) or compiled as C++.**
+
+For example, to merge language A (e.g. C++) and language B (e.g. python), the comments in language B (`r'''...'''`) needs to be ignored in language A (via wrapping in `# if 0 ... #endif`), and the comments in language A (`#if 0 ... #endif`) needs to be comments in language B.
 
 ## Requirements
 - g++ (for C++ syntax checking and compiling the tool)
@@ -41,6 +43,8 @@ Example (using the sample files in this repo):
 After running, check your chosen output file (for example `./test/out.cpp`) for the merged result.
 
 ## Running tests
+
+Note that you need bash, ruby, g++, and python installed for the test runner to work smoothly for all supported languages.
 
 ```bash
 g++ test_runner.cpp -o runtests;
