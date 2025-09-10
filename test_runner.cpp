@@ -1,9 +1,3 @@
-// test_runner.cpp
-// Compile: g++ -std=c++17 test_runner.cpp -o test_runner
-// Usage: ./test_runner
-//
-// Runs test permutations similar to user's bash script and reports pass/fail per-test.
-
 #include <bits/stdc++.h>
 #if defined(__APPLE__) || defined(__linux__)
 #include <sys/wait.h> // for WIFEXITED, WEXITSTATUS
