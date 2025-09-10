@@ -41,6 +41,21 @@ static std::string shellSafePath(const std::string& path) {
     return "\"" + escaped + "\"";
 }
 
+std::string replace(const std::string& str, const std::string& replace, const std::string& with) {
+    if (replace.empty()) return str; // avoid infinite loop
+    std::string result;
+    result.reserve(str.size());
+    std::size_t start = 0;
+    std::size_t pos;
+    while ((pos = str.find(replace, start)) != std::string::npos) {
+        result.append(str, start, pos - start);
+        result += with;
+        start = pos + replace.length();
+    }
+    result.append(str, start, str.size() - start);
+    return result;
+}
+
 bool checkSyntax(const std::string& file, const std::string& ext) {
     std::string res;
     std::string quoted = shellSafePath(file);
@@ -132,16 +147,34 @@ void writeMerged(
         out.put('\n'); // always LF
     };
 
+    auto escapeForPython = [](const std::string& line) -> std::string {
+        std::string out;
+        for (size_t i = 0; i < line.size(); i++) {
+            if (i + 2 < line.size() && line[i] == '\'' && line[i+1] == '\'' && line[i+2] == '\'') {
+                out += "\\'\\'\\'";
+                i += 2;
+            } else {
+                out += line[i];
+            }
+        }
+        return out;
+    };
+
+
     // --- Block A: output C++ file, hide non-C++ fence ---
     if (ext1 == ".cpp" || ext1 == ".cc" || ext1 == ".cxx" || ext1 == ".c") {
         // ext1 is C++, show it
         writeLine(escapeCpp(openFence(ext2)));
-        for (auto& l : content1) writeLine(l);
+        for (const std::string& l : content1) {
+            writeLine(escapeForPython(l));
+        }
         writeLine(escapeCpp(closeFence(ext2)));
 
         // hide ext2
         writeLine("#if 0");
-        for (auto& l : content2) writeLine(l);
+        for (auto& l : content2) {
+            writeLine(escapeForPython(l));
+        }
         writeLine("#endif");
     }
     else if (ext2 == ".cpp" || ext2 == ".cc" || ext2 == ".cxx" || ext2 == ".c") {
