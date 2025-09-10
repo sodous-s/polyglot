@@ -40,6 +40,13 @@ Example (using the sample files in this repo):
 
 After running, check your chosen output file (for example `./test/out.cpp`) for the merged result.
 
+## Running tests
+
+```bash
+g++ test_runner.cpp -o runtests;
+./runtests
+```
+
 ## Notes & Troubleshooting
 Notes & Troubleshooting
 - If `pyflakes` is not installed the tool will print the error from the attempted check; install it or skip using Python source files.
