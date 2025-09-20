@@ -1,30 +1,79 @@
-name: Build Project
+name: Build, Test, and Release
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
 
 jobs:
-  build:
+  build-and-test:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            make_cmd: g++ main.cpp -std=c++17 -o polyglot
+            main_cmd: g++ main.cpp -std=c++17 -o build/polyglot
+            test_cmd: g++ test_runner.cpp -std=c++17 -o build/test-runner
+            main_binary: polyglot-linux
+            test_binary: test-runner-linux
           - os: macos-latest  
-            make_cmd: clang++ main.cpp -std=c++17 -o polyglot
+            main_cmd: clang++ main.cpp -std=c++17 -o build/polyglot
+            test_cmd: clang++ test_runner.cpp -std=c++17 -o build/test-runner
+            main_binary: polyglot-macos
+            test_binary: test-runner-macos
           - os: windows-latest
-            make_cmd: g++ main.cpp -std=c++17 -o polyglot
+            main_cmd: g++ main.cpp -std=c++17 -o build/polyglot.exe
+            test_cmd: g++ test_runner.cpp -std=c++17 -o build/test-runner.exe
+            main_binary: polyglot-windows.exe
+            test_binary: test-runner-windows.exe
     
     runs-on: ${{ matrix.os }}
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build project
-      run: ${{ matrix.make_cmd }}
+    - name: Create build directory
+      run: mkdir -p build
     
-    - name: Upload artifacts
+    - name: Build main project
+      run: ${{ matrix.main_cmd }}
+    
+    - name: Build test runner
+      run: ${{ matrix.test_cmd }}
+    
+    - name: Run tests
+      run: |
+        # Make binaries executable (Unix systems)
+        chmod +x build/polyglot* build/test-runner* 2>/dev/null || true
+        
+        # Run the test runner
+        if [ -f "build/test-runner" ]; then
+          ./build/test-runner
+        elif [ -f "build/test-runner.exe" ]; then
+          ./build/test-runner.exe
+        fi
+    
+    - name: Upload main binaries as artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: polyglot-${{ matrix.os }}
-        path: ./
+        name: ${{ matrix.main_binary }}
+        path: build/polyglot*
+    
+    - name: Upload test binaries as artifacts (optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.test_binary }}
+        path: build/test-runner*
+    
+    - name: Upload to release (main binaries only)
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/polyglot*
+        tag_name: ${{ github.ref }}
+        body: Automated build for ${{ matrix.os }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
