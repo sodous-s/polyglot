@@ -9,11 +9,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            make_cmd: g++ main.cpp -o polyglot
+            make_cmd: g++ main.cpp -std=c++17 -o polyglot
           - os: macos-latest  
-            make_cmd: clang++ main.cpp -o polyglot
+            make_cmd: clang++ main.cpp -std=c++17 -o polyglot
           - os: windows-latest
-            make_cmd: g++ main.cpp -o polyglot
+            make_cmd: g++ main.cpp -std=c++17 -o polyglot
     
     runs-on: ${{ matrix.os }}
     
