@@ -66,8 +66,8 @@ jobs:
     - name: Make binaries executable (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        if exist build\polyglot.exe echo "Windows executable built"
-        if exist build\test-runner.exe echo "Test runner built"
+        if (exist build\polyglot.exe) echo "Windows executable built"
+        if (exist build\test-runner.exe) echo "Test runner built"
     
     - name: Run tests from project root
       run: |

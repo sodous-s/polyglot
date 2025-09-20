@@ -22,9 +22,13 @@ static string esc_red   = "\033[31m";
 static string esc_green = "\033[32m";
 static string esc_yellow= "\033[33m";
 static string esc_blue  = "\033[34m";
+static string esc_magenta = "\033[35m";
 static string esc_bold  = "\033[1m";
 
 CommandResult runCommand(const std::string& cmd) {
+    // add logging
+    std::cout << esc_magenta << "\tCmd: " << cmd << esc_reset << std::endl;
+
     std::array<char, 256> buffer;
     std::string result;
 
