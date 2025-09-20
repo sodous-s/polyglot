@@ -12,7 +12,7 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
             main_cmd: g++ main.cpp -std=c++17 -o build/polyglot -Wno-ignored-attributes
@@ -32,12 +32,15 @@ jobs:
     - name: Install dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        pip3 install pyflakes
+        sudo apt update
+        sudo apt install -y python3-pyflakes
     
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        pip3 install pyflakes
+        # Use pipx or install via Homebrew if available
+        brew install pyflakes || pipx install pyflakes || python3 -m pip install --user pyflakes
+    
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -52,24 +55,35 @@ jobs:
     - name: Build test runner
       run: ${{ matrix.test_cmd }}
     
-    - name: Make binaries executable
+    - name: Make binaries executable (Unix)
+      if: matrix.os != 'windows-latest'
       run: chmod +x build/polyglot build/test-runner
+    
+    - name: Make binaries executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        if exist build\polyglot.exe echo "Windows executable built"
+        if exist build\test-runner.exe echo "Test runner built"
     
     - name: Run tests from project root
       run: |
         cd "$GITHUB_WORKSPACE"
-        ./build/test-runner
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          ./build/test-runner.exe
+        else
+          ./build/test-runner
+        fi
     
     - name: Upload main binaries as artifacts
       uses: actions/upload-artifact@v4
       with:
         name: polyglot-${{ matrix.os }}
-        path: build/polyglot
+        path: build/polyglot*
     
     - name: Upload to release
       if: github.event_name == 'release'
       uses: softprops/action-gh-release@v1
       with:
-        files: build/polyglot
+        files: build/polyglot*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
