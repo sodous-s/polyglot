@@ -1,144 +1,172 @@
-#!/usr/bin/env python3
-
-import sys
 import subprocess
+import sys
+import os
 from pathlib import Path
-import argparse
-import shlex
 
-def run_cmd(cmd):
-    try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        return result.stdout
-    except Exception as e:
-        return str(e)
-    
-def shell_safe(path: str) -> str:
-    # Convert backslashes to forward slashes (for WSL/bash)
-    p = Path(path).as_posix()
-    # Quote the path safely for the shell
-    return shlex.quote(p)
-
-def check_syntax(file_path, ext):
-    file_str = str(file_path)
-    if ext in ['.cpp', '.cc', '.cxx', '.c']:
-        flag = " -x c " if ext == ".c" else ""
-        res = run_cmd(f"g++ -fsyntax-only {flag} {file_str} 2>&1")
-        if res.strip():
-            print(f"C++ syntax errors in {file_str}:\n{res}")
-            return False
-        return True
-    elif ext == '.py':
-        res = run_cmd(f"pyflakes {file_str} 2>&1")
-        if res.strip():
-            print(f"Python syntax errors in {file_str}:\n{res}")
-            print("If python file does not have syntax errors, please check if pyflakes is installed.")
-            return False
-        return True
-    elif ext == '.rb':
-        res = run_cmd(f"ruby -c {file_str} 2>&1")
-        if "Syntax OK" not in res:
-            print(f"Ruby syntax errors in {file_str}:\n{res}")
-            return False
-        return True
-    elif ext == '.sh':
-        res = run_cmd(f"bash -n {shell_safe(file_str)} 2>&1")
-        if res.strip():
-            print(f"Bash syntax errors in {file_str}:\n{res}")
-            return False
-        return True
-    else:
-        print(f"Unsupported file extension: {ext}")
-        return False
-
-def main():
-    usage_str = """Usage: polyglot <source1> <source2> -o <outputFile>
+usage_str = """Usage: polyglot <source1> <source2> -o <outputFile>
 Supported extensions:
   C/C++: .cpp, .cc, .cxx, .c
   Python: .py
   Ruby: .rb
   Bash: .sh
-"""
+  Perl: .pl"""
+
+def run_cmd(cmd):
+    try:
+        result = subprocess.run(cmd, shell=True, check=True, 
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              text=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        return e.stderr
+
+def shell_safe_path(path):
+    path_str = str(Path(path))
+    escaped = path_str.replace('"', '\\"')
+    return f'"{escaped}"'
+
+def check_syntax(file, ext):
+    quoted = shell_safe_path(file)
     
-    parser = argparse.ArgumentParser(usage=usage_str)
-    parser.add_argument('source1', help='First source file')
-    parser.add_argument('source2', help='Second source file')
-    parser.add_argument('-o', '--output', required=True, help='Output file')
-    args = parser.parse_args()
+    if ext in ('.cpp', '.cc', '.cxx', '.c'):
+        flag = '-x c ' if ext == '.c' else ''
+        res = run_cmd(f"g++ -fsyntax-only {flag}{quoted}")
+        if res.strip():
+            print(f"C/C++ syntax errors in {file}:\n{res}", file=sys.stderr)
+            return False
+        return True
+    elif ext == '.py':
+        res = run_cmd(f"pyflakes {quoted}")
+        if res.strip():
+            fallback = run_cmd(f"python -m py_compile {quoted}")
+            if fallback.strip():
+                print(f"Python syntax errors in {file}:\n{fallback}", file=sys.stderr)
+                print("If pyflakes is desired, please install it or ensure it's on PATH.", file=sys.stderr)
+                return False
+        return True
+    elif ext == '.rb':
+        res = run_cmd(f"ruby -c {quoted}")
+        if "Syntax OK" not in res:
+            print(f"Ruby syntax errors in {file}:\n{res}", file=sys.stderr)
+            return False
+        return True
+    elif ext == '.sh':
+        res = run_cmd(f"bash -n {quoted}")
+        if res.strip():
+            print(f"Bash syntax errors in {file}:\n{res}", file=sys.stderr)
+            return False
+        return True
+    elif ext == '.pl':
+        res = run_cmd(f"perl -c {quoted}")
+        if "syntax OK" not in res:
+            print(f"Perl syntax errors in {file}:\n{res}", file=sys.stderr)
+            return False
+        return True
+    
+    print(f"\nUnsupported file extension: {ext}\n", file=sys.stderr)
+    return False
 
-    file1 = Path(args.source1)
-    file2 = Path(args.source2)
-    out_file = Path(args.output)
+def read_file(filename):
+    with open(filename, 'r', encoding='utf-8') as f:
+        return f.readlines()
 
-    ext1 = file1.suffix
-    ext2 = file2.suffix
-
-    # Check syntax
-    print(f"Checking syntax for {file1}... ", end='')
-    if not check_syntax(file1, ext1):
-        print(f"Syntax error in {file1}")
-        return 1
-    print("OK")
-
-    print(f"Checking syntax for {file2}... ", end='')
-    if not check_syntax(file2, ext2):
-        print(f"Syntax error in {file2}")
-        return 1
-    print("OK")
-
-    # Read files
-    with open(file1, 'r') as f:
-        content1 = f.read().splitlines()
-    with open(file2, 'r') as f:
-        content2 = f.read().splitlines()
-
-    # Determine fence tokens
+def write_merged(out_file, ext1, content1, ext2, content2):
     def open_fence(ext):
         if ext == '.py': return "r'''"
         if ext == '.rb': return "=begin"
         if ext == '.sh': return ": '"
+        if ext == '.pl': return "=pod"
         return ""
-
+    
     def close_fence(ext):
         if ext == '.py': return "'''"
         if ext == '.rb': return "=end"
         if ext == '.sh': return "'"
+        if ext == '.pl': return "=cut"
         return ""
-
-    # Write merged file
-    with open(out_file, 'w', newline='\n') as f:
-        if ext1 in ['.cpp', '.cc', '.cxx', '.c']:
-            # Write C++ content with fence tokens for the other language
-            f.write(f"#if 0\n{open_fence(ext2)}\n#endif\n")
+    
+    def escape_cpp(content):
+        return "#if 0\n" + content + "\n#endif\n"
+    
+    def escape_for_python(line):
+        return line.replace("'''", "\\'\\'\\'")
+    
+    with open(out_file, 'w', encoding='utf-8') as out:
+        def write_line(line):
+            out.write(line + '\n')
+        
+        if ext1 in ('.cpp', '.cc', '.cxx', '.c'):
+            write_line(escape_cpp(open_fence(ext2)))
             for line in content1:
-                f.write(line + '\n')
-            f.write(f"#if 0\n{close_fence(ext2)}\n#endif\n")
+                write_line(escape_for_python(line.rstrip('\n')))
+            write_line(escape_cpp(close_fence(ext2)))
             
-            # Write non-C++ content within #if 0 block
-            f.write("#if 0\n")
+            write_line("#if 0")
             for line in content2:
-                f.write(line + '\n')
-            f.write("#endif\n")
-            
-        elif ext2 in ['.cpp', '.cc', '.cxx', '.c']:
-            # Write C++ content with fence tokens for the other language
-            f.write(f"#if 0\n{open_fence(ext1)}\n#endif\n")
+                write_line(escape_for_python(line.rstrip('\n')))
+            write_line("#endif")
+        elif ext2 in ('.cpp', '.cc', '.cxx', '.c'):
+            write_line(escape_cpp(open_fence(ext1)))
             for line in content2:
-                f.write(line + '\n')
-            f.write(f"#if 0\n{close_fence(ext1)}\n#endif\n")
+                write_line(line.rstrip('\n'))
+            write_line(escape_cpp(close_fence(ext1)))
             
-            # Write non-C++ content within #if 0 block
-            f.write("#if 0\n")
+            write_line("#if 0")
             for line in content1:
-                f.write(line + '\n')
-            f.write("#endif\n")
-            
+                write_line(line.rstrip('\n'))
+            write_line("#endif")
         else:
-            print("Error: No C/C++ file in pair")
-            return 1
+            raise RuntimeError("No C/C++ file in pair")
 
+def main():
+    args = sys.argv[1:]
+    if len(args) < 4:
+        print(usage_str, file=sys.stderr)
+        sys.exit(1)
+    
+    file1 = file2 = out_file = None
+    i = 0
+    while i < len(args):
+        if args[i] == '-o':
+            if i + 1 >= len(args):
+                print("Error: -o requires an argument", file=sys.stderr)
+                sys.exit(1)
+            out_file = args[i+1]
+            i += 2
+        elif file1 is None:
+            file1 = args[i]
+            i += 1
+        elif file2 is None:
+            file2 = args[i]
+            i += 1
+        else:
+            print(f"Error: unexpected argument: {args[i]}", file=sys.stderr)
+            sys.exit(1)
+    
+    if not file1 or not file2 or not out_file:
+        print(usage_str, file=sys.stderr)
+        sys.exit(1)
+    
+    ext1 = Path(file1).suffix
+    ext2 = Path(file2).suffix
+    
+    print(f"Checking syntax for {file1}... ", end='')
+    if not check_syntax(file1, ext1):
+        print(f"\nSyntax error in {file1}", file=sys.stderr)
+        sys.exit(1)
+    print("OK")
+    
+    print(f"Checking syntax for {file2}... ", end='')
+    if not check_syntax(file2, ext2):
+        print(f"\nSyntax error in {file2}", file=sys.stderr)
+        sys.exit(1)
+    print("OK")
+    
+    content1 = read_file(file1)
+    content2 = read_file(file2)
+    
+    write_merged(out_file, ext1, content1, ext2, content2)
     print(f"Merged into {out_file}")
-    return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
