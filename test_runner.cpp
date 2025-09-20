@@ -1,4 +1,10 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <array>
+#include <utility>
+#include <cstdio>
+#include <cstdlib>
 #if defined(__APPLE__) || defined(__linux__)
 #include <sys/wait.h> // for WIFEXITED, WEXITSTATUS
 #endif
