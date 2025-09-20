@@ -74,12 +74,14 @@ jobs:
     
     - name: Run tests from project root
       run: |
-        cd "$GITHUB_WORKSPACE"
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          ./build/test-runner.exe
-        else
-          ./build/test-runner
-        fi
+        # cd "$GITHUB_WORKSPACE"
+        # if [ "${{ matrix.os }}" = "windows-latest" ]; then
+        #   ./build/test-runner.exe
+        # else
+        #   ./build/test-runner
+        # fi
+        # if ("${{matrix.os}}" -eq "windows-latest")
+        ./build/test-runner
     
     - name: Upload main binaries as artifacts
       uses: actions/upload-artifact@v4
