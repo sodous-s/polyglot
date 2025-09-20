@@ -15,13 +15,13 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            main_cmd: g++ main.cpp -std=c++17 -o build/polyglot
+            main_cmd: g++ main.cpp -std=c++17 -o build/polyglot -Wno-ignored-attributes
             test_cmd: g++ test_runner.cpp -std=c++17 -o build/test-runner
           - os: macos-latest  
-            main_cmd: clang++ main.cpp -std=c++17 -o build/polyglot
+            main_cmd: clang++ main.cpp -std=c++17 -o build/polyglot -Wno-ignored-attributes
             test_cmd: clang++ test_runner.cpp -std=c++17 -o build/test-runner
           - os: windows-latest
-            main_cmd: g++ main.cpp -std=c++17 -o build/polyglot.exe
+            main_cmd: g++ main.cpp -std=c++17 -o build/polyglot.exe -Wno-ignored-attributes
             test_cmd: g++ test_runner.cpp -std=c++17 -o build/test-runner.exe
     
     runs-on: ${{ matrix.os }}
