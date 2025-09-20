@@ -87,7 +87,7 @@ static string normalizePath(string p) {
 int main() {
     string testDir = normalizePath("./test");
 
-    printHeader("Polyglot test runner -- generated from user's bash script");
+    printHeader("--- Polyglot test runner ---");
     cout << "Test directory: " << testDir << "\n\n";
 
     // Build polyglot
@@ -197,9 +197,45 @@ int main() {
         }
         cout << esc_green << "compile OK\n" << esc_reset;
 
+        // On Unix-like systems, ensure the compiled executable is executable
+#if !defined(_WIN32)
+        {
+            string chmodCmd = "chmod +x " + tc.compiledExe;
+            auto chmodRes = runCommand(chmodCmd);
+            if (chmodRes.exitCode != 0) {
+                cout << esc_yellow << "chmod warning: " << chmodRes.output << esc_reset << "\n";
+            }
+
+            // Check file exists and show details (helpful for debugging "not found")
+            string checkFileCmd = "ls -la " + tc.compiledExe + " 2>/dev/null || echo \"File not found\"";
+            auto checkRes = runCommand(checkFileCmd);
+            cout << "File check: " << checkRes.output << "\n";
+        }
+#endif
+
         for (auto &rs : tc.runSteps) {
-            cout << "-> " << rs.first << ": " << rs.second << "\n";
-            auto rr = runCommand(rs.second);
+            // Resolve the run command. For the compiled step, use the actual compiled executable
+            string runCmd = rs.second;
+            if (rs.first == "run-compiled") {
+                string compiled = tc.compiledExe;
+#if defined(_WIN32)
+                // Convert forward slashes to backslashes for Windows shell
+                for (auto &c : compiled) if (c == '/') c = '\\';
+                // If compiled path is relative and doesn't already start with .\, prefix it
+                if (compiled.rfind(".\\", 0) != 0 && compiled.find(":") == string::npos && compiled.rfind("\\\\", 0) != 0) {
+                    compiled = exePrefix + compiled;
+                }
+#else
+                // On Unix, ensure relative executables are prefixed with ./ for direct execution
+                if (compiled.rfind("./", 0) != 0 && compiled.size() > 0 && compiled[0] != '/') {
+                    compiled = exePrefix + compiled;
+                }
+#endif
+                runCmd = compiled;
+            }
+
+            cout << "-> " << rs.first << ": " << runCmd << "\n";
+            auto rr = runCommand(runCmd);
             tr.stepResults.push_back({rs.first, rr});
             if (rr.exitCode != 0) {
                 cout << esc_red << rs.first << " FAILED\n" << rr.output << esc_reset << "\n";
