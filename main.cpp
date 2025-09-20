@@ -1,4 +1,4 @@
-//main.cpp
+// main.cpp
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -17,7 +17,7 @@ std::string usageStr =
     "  Python: .py\n"
     "  Ruby: .rb\n"
     "  Bash: .sh\n"
-    "  Perl: .pl\n";  // 添加Perl支持说明
+    "  Perl: .pl\n";
     
 std::string runCmd(const std::string& cmd) {
     std::array<char, 256> buffer;
@@ -91,7 +91,7 @@ bool checkSyntax(const std::string& file, const std::string& ext) {
             return false;
         }
         return true;
-    } else if (ext == ".pl") {  // 添加Perl语法检查
+    } else if (ext == ".pl") {
         res = runCmd("perl -c " + quoted + " 2>&1");
         if (res.find("syntax OK") == std::string::npos) {
             std::cerr << "Perl syntax errors in " << file << ":\n" << res;
@@ -125,7 +125,7 @@ void writeMerged(
         if (ext == ".py") return "r'''";
         if (ext == ".rb") return "=begin";
         if (ext == ".sh") return ": '";
-        if (ext == ".pl") return "=pod";  // 添加Perl围栏开始
+        if (ext == ".pl") return "=pod";
         return "";
     };
 
@@ -133,7 +133,7 @@ void writeMerged(
         if (ext == ".py") return "'''";
         if (ext == ".rb") return "=end";
         if (ext == ".sh") return "'";
-        if (ext == ".pl") return "=cut";  // 添加Perl围栏结束
+        if (ext == ".pl") return "=cut";
         return "";
     };
 
