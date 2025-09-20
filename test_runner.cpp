@@ -88,7 +88,7 @@ int main() {
 
     // Build polyglot
     cout << esc_blue << "Step: build polyglot from main.cpp (g++ main.cpp -o polyglot)" << esc_reset << "\n";
-    auto buildPoly = runCommand("g++ main.cpp -o polyglot");
+    auto buildPoly = runCommand("g++ main.cpp -std=c++17 -o polyglot");
     if (buildPoly.exitCode == 0) {
         cout << esc_green << "Built polyglot OK\n" << esc_reset;
     } else {
