@@ -19,7 +19,7 @@ def shell_safe(path: str) -> str:
     # Quote the path safely for the shell
     return shlex.quote(p)
 
-def check_syntax(file_path, ext):
+def check_syntax(file_path, ext) -> bool:
     file_str = str(file_path)
     if ext in ['.cpp', '.cc', '.cxx', '.c']:
         flag = " -x c " if ext == ".c" else ""
@@ -47,6 +47,12 @@ def check_syntax(file_path, ext):
             print(f"Bash syntax errors in {file_str}:\n{res}")
             return False
         return True
+    elif ext == ".pl":
+        res = run_cmd(f"perl -c {file_str} 2>&1")
+        if "syntax OK" not in res:
+            print(f"Perl syntax errors in {file_str}:\n{res}")
+            return False
+        return True
     else:
         print(f"Unsupported file extension: {ext}")
         return False
@@ -58,6 +64,7 @@ Supported extensions:
   Python: .py
   Ruby: .rb
   Bash: .sh
+  Perl: .pl
 """
     
     parser = argparse.ArgumentParser(usage=usage_str)
@@ -97,12 +104,14 @@ Supported extensions:
         if ext == '.py': return "r'''"
         if ext == '.rb': return "=begin"
         if ext == '.sh': return ": '"
+        if ext == '.pl': return "=pod"
         return ""
 
     def close_fence(ext):
         if ext == '.py': return "'''"
         if ext == '.rb': return "=end"
         if ext == '.sh': return "'"
+        if ext == ".pl": return "=cut"
         return ""
 
     # Write merged file

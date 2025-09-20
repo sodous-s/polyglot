@@ -17,6 +17,7 @@ For example, to merge language A (e.g. C++) and language B (e.g. python), the co
 The tool also supports syntax checking for other languages via system tools:
 - Ruby (`ruby -c`) — files with `.rb`
 - Bash (`bash -n`) — files with `.sh`
+- Perl (`perl -c`) — files with `.pl`
 
 ## Build
 From the repository root:

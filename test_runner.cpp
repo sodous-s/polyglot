@@ -113,6 +113,8 @@ int main() {
         {testDir + "/test.rb",  testDir + "/test.cpp", testDir + "/out.cpp", "g++", testDir + "/out", exePrefix + "out" + exeSuffix, "ruby "   + testDir + "/out.cpp"},
         {testDir + "/test.cpp", testDir + "/test.sh", testDir + "/out.cpp", "g++", testDir + "/out", exePrefix + "out" + exeSuffix, "bash "   + testDir + "/out.cpp"},
         {testDir + "/test.sh",  testDir + "/test.cpp", testDir + "/out.cpp", "g++", testDir + "/out", exePrefix + "out" + exeSuffix, "bash "   + testDir + "/out.cpp"},
+        {testDir + "/test.pl",  testDir + "/test.cpp", testDir + "/out.cpp", "g++", testDir + "/out",
+        exePrefix + "out" + exeSuffix, "perl "   + testDir + "/out.cpp"},
     };
 
     vector<PairDef> combos_c_style = {
@@ -122,6 +124,7 @@ int main() {
         {testDir + "/test.rb", testDir + "/test.c", testDir + "/out.c", "gcc", testDir + "/out", exePrefix + "out" + exeSuffix, "ruby "   + testDir + "/out.c"},
         {testDir + "/test.c", testDir + "/test.sh", testDir + "/out.c", "gcc", testDir + "/out", exePrefix + "out" + exeSuffix, "bash "   + testDir + "/out.c"},
         {testDir + "/test.sh", testDir + "/test.c", testDir + "/out.c", "gcc", testDir + "/out", exePrefix + "out" + exeSuffix, "bash "   + testDir + "/out.c"},
+        {testDir + "/test.pl", testDir + "/test.c", testDir + "/out.c", "gcc", testDir + "/out", exePrefix + "out" + exeSuffix, "perl "   + testDir + "/out.c"},
     };
 
     // Build tests
