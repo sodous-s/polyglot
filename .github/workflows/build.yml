@@ -1,0 +1,29 @@
+name: Build Project
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            make_cmd: g++ main.cpp -o polyglot
+          - os: macos-latest  
+            make_cmd: clang++ main.cpp -o polyglot
+          - os: windows-latest
+            make_cmd: g++ main.cpp -o polyglot
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build project
+      run: ${{ matrix.make_cmd }}
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: polyglot-${{ matrix.os }}
