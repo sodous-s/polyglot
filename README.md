@@ -45,7 +45,7 @@ After running, check your chosen output file (for example `./test/out.cpp`) for 
 
 ## Running tests
 
-Note that you need bash, ruby, g++, and python installed for the test runner to work smoothly for all supported languages.
+Note that you need bash, ruby, and perl in addition to g++ and python installed for the test runner to work smoothly for all supported languages.
 
 ```bash
 g++ test_runner.cpp -o runtests;
@@ -57,7 +57,7 @@ Notes & Troubleshooting
 - If `pyflakes` is not installed the tool will print the error from the attempted check; install it or skip using Python source files.
   - Install manually: `python -m pip install pyflakes`
 - On some systems the `pyflakes` executable might not be on PATH; use `python -m pyflakes <file>.py` instead.
-- The tool runs external commands (via popen). Ensure `g++`, `bash`, and `ruby` are available if you use those source file types.
+- The tool runs external commands (via popen). Ensure `g++`, `bash`, `ruby`, and `perl` are available if you use those source file types.
 - The output file is a `.cpp` file that will compile as C++ and can also be run by an interpreter (for example `python out.cpp`).
 
 ## Example files
