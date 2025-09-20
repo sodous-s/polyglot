@@ -32,14 +32,16 @@ jobs:
     - name: Install dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt update
-        sudo apt install -y python3-pyflakes
+        sudo apt-get update -q
+        sudo apt-get install -y python3-pyflakes
     
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        # Use pipx or install via Homebrew if available
-        brew install pyflakes || pipx install pyflakes || python3 -m pip install --user pyflakes
+        # Use virtual environment approach (recommended)
+        python3 -m venv .venv
+        source .venv/bin/activate
+        pip install pyflakes
     
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
