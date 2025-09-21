@@ -31,9 +31,11 @@ def check_syntax(file_path, ext) -> bool:
     elif ext == '.py':
         res = run_cmd(f"python3 -m pyflakes {file_str} 2>&1")
         if res.strip():
-            print(f"Python syntax errors in {file_str}:\n{res}")
-            print("If python file does not have syntax errors, please check if pyflakes is installed.")
-            return False
+            res = run_cmd(f"python3 -m py_compile {file_str} 2>&1")
+            if res.strip():
+                print(f"Python syntax errors in {file_str}:\n{res}")
+                print("If python file does not have syntax errors, please check if pyflakes is installed.")
+                return False
         return True
     elif ext == '.rb':
         res = run_cmd(f"ruby -c {file_str} 2>&1")
