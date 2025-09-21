@@ -67,7 +67,12 @@ bool checkSyntax(const std::string& file, const std::string& ext) {
         }
         return true;
     } else if (ext == ".py") {
-        res = runCmd("python -m pyflakes " + quoted + " 2>&1");
+        try {
+            res = runCmd("python3 -m pyflakes " + quoted + " 2>&1");
+        } catch (const std::exception& x) {
+            std::cerr << "\033[31m" << "Error: " << x.what() << "\033[0m" << std::endl;
+            res = x.what();
+        }
         if (!res.empty()) {
             std::string fallback = runCmd("python -m py_compile " + quoted + " 2>&1");
             if (!fallback.empty()) {
