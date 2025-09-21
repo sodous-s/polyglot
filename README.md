@@ -12,7 +12,7 @@ For example, to merge language A (e.g. C++) and language B (e.g. python), the co
 ## Requirements
 - g++ (for C++ syntax checking and compiling the tool)
 - pip (to install `pyflakes` if absent)
-- `pyflakes` for Python syntax checking (optional)
+- `pyflakes` for Python syntax checking (optional, fallback = `python3 -m py_compile`)
 
 The tool also supports syntax checking for other languages via system tools:
 - Ruby (`ruby -c`) — files with `.rb`
