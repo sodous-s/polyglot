@@ -59,7 +59,10 @@ def check_syntax(file_path, ext) -> bool:
         print(f"Unsupported file extension: {ext}")
         return False
 
+verbose = None
+
 def main():
+    global verbose
     usage_str = """Usage: polyglot <source1> <source2> -o <outputFile>
 Supported extensions:
   C/C++: .cpp, .cc, .cxx, .c
@@ -73,27 +76,30 @@ Supported extensions:
     parser.add_argument('source1', help='First source file')
     parser.add_argument('source2', help='Second source file')
     parser.add_argument('-o', '--output', required=True, help='Output file')
+    parser.add_argument('-v', '--verbose', help='verbose mode')
     args = parser.parse_args()
 
     file1 = Path(args.source1)
     file2 = Path(args.source2)
     out_file = Path(args.output)
+    
+    verbose = args.verbose
 
     ext1 = file1.suffix
     ext2 = file2.suffix
 
     # Check syntax
-    print(f"Checking syntax for {file1}... ", end='')
+    if verbose: print(f"Checking syntax for {file1}... ", end='')
     if not check_syntax(file1, ext1):
         print(f"Syntax error in {file1}")
         return 1
-    print("OK")
+    if verbose: print("OK")
 
-    print(f"Checking syntax for {file2}... ", end='')
+    if verbose: print(f"Checking syntax for {file2}... ", end='')
     if not check_syntax(file2, ext2):
         print(f"Syntax error in {file2}")
         return 1
-    print("OK")
+    if verbose: print("OK")
 
     # Read files
     with open(file1, 'r') as f:
@@ -148,7 +154,7 @@ Supported extensions:
             print("Error: No C/C++ file in pair")
             return 1
 
-    print(f"Merged into {out_file}")
+    if verbose: print(f"Merged into {out_file}")
     return 0
 
 if __name__ == "__main__":
