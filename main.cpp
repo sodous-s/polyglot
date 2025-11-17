@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
         std::cerr << usageStr;
         return 1;
     }
-
+    bool verbose = false;
     std::string file1, file2, outFile;
     for (int i = 1; i < argc; i++) {
         if (args[i] == "-o") {
@@ -210,6 +210,8 @@ int main(int argc, char* argv[]) {
             file1 = args[i];
         } else if (file2.empty()) {
             file2 = args[i];
+        } else if (args[i] == "-v" || args[i] == "--verbose") {
+            verbose = true;
         } else {
             std::cerr << "Error: unexpected argument: " << args[i] << "\n";
             return 1;
@@ -224,24 +226,24 @@ int main(int argc, char* argv[]) {
     std::string ext1 = fs::path(file1).extension().string();
     std::string ext2 = fs::path(file2).extension().string();
 
-    std::cout << "Checking syntax for " << file1 << "... ";
+    if (verbose) std::cout << "Checking syntax for " << file1 << "... ";
     if (!checkSyntax(file1, ext1)) {
         std::cerr << "\nSyntax error in " << file1 << "\n";
         return 1;
     }
-    std::cout << "OK\n";
+    if (verbose) std::cout << "OK\n";
 
-    std::cout << "Checking syntax for " << file2 << "... ";
+    if (verbose) std::cout << "Checking syntax for " << file2 << "... ";
     if (!checkSyntax(file2, ext2)) {
         std::cerr << "\nSyntax error in " << file2 << "\n";
         return 1;
     }
-    std::cout << "OK\n";
+    if (verbose) std::cout << "OK\n";
 
     auto content1 = readFile(file1);
     auto content2 = readFile(file2);
 
     writeMerged(outFile, ext1, content1, ext2, content2);
-    std::cout << "Merged into " << outFile << "\n";
+    if (verbose) std::cout << "Merged into " << outFile << "\n";
     return 0;
 }

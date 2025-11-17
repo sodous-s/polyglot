@@ -1,6 +1,7 @@
 #if 0
-=pod
+r'''
 #endif
+
 #include <iostream>
 
 int main() {
@@ -8,8 +9,9 @@ int main() {
     return 0;
 }
 #if 0
-=cut
+'''
 #endif
+
 #if 0
-print "Hello from perl!";
+print("Hello from python!")
 #endif
